@@ -1,10 +1,38 @@
-const logEvent = require("./logEvent");
-const EventEmitter = require("events");
+const http = require("http");
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const fsPromise = require("fs").promises;
+const app = express();
+const PORT = process.env.PORT || 3500;
 
-const myEmitter = new EventEmitter();
+app.get("/", async (req, res) => {
+	const filePath = path.join(__dirname, "views", "index.html");
+	res.sendFile(filePath);
+});
 
-myEmitter.on("log", (mes) => logEvent(mes));
+app.get("/old-page", (req, res) => {
+	res.redirect(301, "/");
+});
 
-setTimeout(() => {
-	myEmitter.emit("log", "hello world");
-}, 2000);
+/* route handler */
+
+app.get(
+	"/upper",
+	(req, res, next) => {
+		console.log("hello upper case");
+		next();
+	},
+	(req, res, next) => {
+		console.log("hello lower case");
+		res.send("hello upper case");
+	}
+);
+
+app.get("/*", (req, res) => {
+	const filePath = path.join(__dirname, "views", "404.html");
+	res.status(404).sendFile(filePath);
+});
+app.listen(PORT, () => {
+	console.log("listening on port", PORT);
+});
